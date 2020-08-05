@@ -1,6 +1,6 @@
 const path = require('path')
 const fse = require('fs-extra')
-const multiparty = require('multiparty')
+const multiparty = require('multiparty')  // 需安装依赖  https://www.npmjs.com/package/multiparty
 // path.resolve([...paths]) 方法会将路径或路径片段的序列解析为绝对路径 如果没有传入 path 片段，则 path.resolve() 会返回当前工作目录的绝对路径
 const UPLOAD_DIR = path.resolve(__dirname, '..', 'target') // 设置文件存储目录
 // 处理文件类
@@ -45,14 +45,7 @@ class DP {
       filePath
     }))
   }
-  /**
-   * 验证是否已上传/已上传切片下标
-   */
-  async verify (req, res) {
-    console.log(req, res)
-  }
 }
-
 
 /**
  * 合并切片工具函数

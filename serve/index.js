@@ -1,4 +1,4 @@
-const http = require('http')
+const http = require('http')  // node 内置模块
 const server = http.createServer()
 const DP = require('./handle')
 let dp = new DP() // 创建文件接口实例
@@ -17,7 +17,6 @@ server.on('request', async(req, res) => {
   let fnc = {
     '/chunk': 'chunk',  // 切片上传
     '/merge': 'merge',  // 合并切片
-    '/verify': 'verify'
   }[req.url]
   let fn = dp[fnc] || async function (req, res){
     res.end('没有这个接口!')

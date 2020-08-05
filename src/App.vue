@@ -40,17 +40,16 @@ export default {
         }
       })
     },
-    // 选择文件
+    // 一.选择文件
     handleFileChange (e) {
       let [file] = e.target.files
       if(!file) return
       this.container.file = file
     },
-    // 操作上传
+    // 二. 操作上传
     async handleUpload () {
       if(!this.container.file) return
       let fileChunkList = this.createFileChunk(this.container.file)
-      console.log(fileChunkList)
       this.data = fileChunkList.map(({ file }, index) => {
         return {
           chunk: file,
@@ -59,7 +58,7 @@ export default {
       })
       await this.uploadChunks()
     },
-    // 生成切片 返回切片列表
+    // 三. 生成切片 返回切片列表
     createFileChunk(file, size = SIZE){
       let fileChunkList = []
       let cur = 0
@@ -69,7 +68,7 @@ export default {
       }
       return fileChunkList
     },
-    // 上传切片
+    // 四.上传所有切片
     async uploadChunks(){
       let requestList = this.data.map(({ chunk, hash }) => {
         let formData = new FormData()
@@ -85,7 +84,7 @@ export default {
       // 上传完所有切片,通知后端合并
       await this.mergeRequest()
     },
-    // 合并请求 通知服务端合并切片
+    // 五.合并请求 通知服务端合并切片
     async mergeRequest () {
       let obj = {
         size: SIZE,
