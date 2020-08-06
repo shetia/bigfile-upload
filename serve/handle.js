@@ -16,7 +16,18 @@ class DP {
       const [ chunk ] = files.chunk
       const [ hash ] = fields.hash
       const [ filename ] = fields.filename
-      const chunkDir = path.resolve(UPLOAD_DIR, filename.split('.')[0])
+      // 7.6 文件存在直接返回
+      let [ fileHash ] = fields.fileHash
+      let ext = extractExt(filename) 
+      let filePath = path.resolve(UPLOAD_DIR, `${fileHash}${ext}`)
+      const chunkDir = path.resolve(UPLOAD_DIR, fileHash) // 7.5 文件夹名字 变为hash
+      if(fse.existsSync(filePath)){
+        res.end(JSON.stringify({
+          status: 200,
+          msg: '文件已存在'
+        }))
+        return
+      }
       // 切片目录不存在, 创建切片目录
       if(!fse.existsSync(chunkDir)){ // fs.existsSync(path) 如果路径存在，则返回 true，否则返回 false。
         await fse.mkdirs(chunkDir)   // 同步地创建目录
@@ -36,9 +47,10 @@ class DP {
    */
   async merge (req, res) {
     let data = await resolvePost(req)
-    let {filename, size} = data
-    let filePath = path.resolve(UPLOAD_DIR, filename) // 指定合并后的文件路径
-    await mergeFileChunk(filePath, filename, size)
+    let {fileHash, filename, size} = data
+    let ext = extractExt(filename)  // 7.5使用hash名
+    let filePath = path.resolve(UPLOAD_DIR, `${fileHash}${ext}`) // 指定合并后的文件路径
+    await mergeFileChunk(filePath, fileHash, size) // 7.6改为hash
     res.end(JSON.stringify({
       status: 200,
       msg: '文件合并成功',
@@ -46,10 +58,25 @@ class DP {
     }))
   }
   /**
-   * 验证是否已上传/已上传切片下标
+   * 验证是否已上传/已上传切片下标从 8.2
    */
   async verify (req, res) {
-    console.log(req, res)
+    let data = await resolvePost(req)
+    let { filename, fileHash} = data
+    let ext = extractExt(filename)
+    let filePath = path.resolve(UPLOAD_DIR, `${fileHash}${ext}`)
+    if(fse.existsSync(filePath)){
+      res.end(JSON.stringify({
+        shouldUpload: false,
+        msg: '文件已存在, 无需再上传'
+      }))
+    } else {
+      res.end(JSON.stringify({
+        shouldUpload: true,
+        msg: '文件不存在, 请继续上传',
+        uploadedList: await createUploadedList(fileHash)
+      }))
+    }
   }
 }
 
@@ -83,9 +110,9 @@ function pipeStream (path, writeStream){
   })
 }
 // 合并文件
-async function mergeFileChunk(filePath, filename, size){
+async function mergeFileChunk(filePath, fileHash, size){
   // 根据文件名获取 切片文件夹 (没有后缀)
-  let chunkDir = path.resolve(UPLOAD_DIR, filename.split('.')[0])
+  let chunkDir = path.resolve(UPLOAD_DIR, fileHash)
   // 根据切片路径 获取文件夹下的所有切片  http://nodejs.cn/api/fs.html#fs_fs_readdir_path_options_callback
   //fs.readdir(path[, options], callback) 读取目录的内容。 回调有两个参数 (err, files)，其中 files 是目录中文件的名称的数组（不包括 '.' 和 '..'）
   let chunkPaths = await fse.readdir(chunkDir)  
@@ -104,6 +131,13 @@ async function mergeFileChunk(filePath, filename, size){
   // 合并完成后删除切片缓存文件夹
   fse.rmdirSync(chunkDir)
 }
-
-
+// 提取后缀名
+function extractExt (filename) {
+  return filename.slice(filename.lastIndexOf("."), filename.length); 
+}
+// 8.3返回已经上传的切片名 如果存在该文件夹, 就返回文件夹内的切片列表, 否则空
+async function createUploadedList(fileHash){
+  let filePath = path.resolve(UPLOAD_DIR, fileHash)
+  return fse.existsSync(filePath) ? await fse.readdir(filePath) : []
+}
 module.exports = DP
