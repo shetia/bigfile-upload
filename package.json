@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "start": "vue-cli-service serve",
-    "serve" : "node ./serve/index.js",
+    "serve": "node ./serve/index.js",
     "build": "vue-cli-service build"
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "element-ui": "^2.13.2",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0"
   },

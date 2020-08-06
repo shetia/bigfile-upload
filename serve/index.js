@@ -17,6 +17,7 @@ server.on('request', async(req, res) => {
   let fnc = {
     '/chunk': 'chunk',  // 切片上传
     '/merge': 'merge',  // 合并切片
+    '/verify': 'verify'
   }[req.url]
   let fn = dp[fnc] || async function (req, res){
     res.end('没有这个接口!')

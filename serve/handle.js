@@ -45,7 +45,14 @@ class DP {
       filePath
     }))
   }
+  /**
+   * 验证是否已上传/已上传切片下标
+   */
+  async verify (req, res) {
+    console.log(req, res)
+  }
 }
+
 
 /**
  * 合并切片工具函数
